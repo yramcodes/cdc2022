@@ -1,5 +1,5 @@
 rm(list=ls())
-setwd("C:/Users/marym/OneDrive/Desktop/cdc")
+#setwd("C:/Users/marym/OneDrive/Desktop/cdc")
 cdc<-read.csv('cdc.csv')
 library(caret) # was going to do machine learning, but didn't (my models were bad)
 
@@ -9,12 +9,10 @@ povertyy
 
 summary(povertyy) # regression table
 
-povertyy.df<-data.frame(Coefficient=c('0.34***', '1.39***', '-0.063***'), 
+povertyy.df<-data.frame(Variable=c('Non-white', 'Disability', 'Constant'),
+                        Coefficient=c('0.34***', '1.39***', '-0.063***'), 
                         Standard_Error=c(0.02, 0.08, 0.01), 
                         T_Value=c(19.95, 18.18, -5.23)) # copying the results into a dataframe
-
-row.names(povertyy.df)<-c('Non-white', 'Disability', 'Constant') #naming the nice little row
-
 
 
 elevy<-train(Elevation~Poverty+MentalHealth, data=cdc, method='lm') #making another model for other variables
@@ -23,11 +21,10 @@ elevy
 
 summary(elevy)
 
-elevy.df<-data.frame(Coefficient=c('-115.09***', '-2.352***', '202.34***'), 
+elevy.df<-data.frame(Variable=c('Poverty', 'Mental Health', 'Constant'),
+                     Coefficient=c('-115.09***', '-2.352***', '202.34***'), 
                      Standard_Error=c(28.85, 0.29, 8.13), 
                      T_Value=c(-3.99, -8.14, 24.89))
-
-row.names(elevy.df)<-c('Poverty', 'Mental Health', 'Constant')
 
 
 
@@ -37,11 +34,10 @@ mhy
 
 summary(mhy)
 
-mhy.df<-data.frame(Coefficient=c('-0.04***', '38.26***', '15.02***'), 
+mhy.df<-data.frame(Variable=c('Elevation', 'Poverty', 'Constant'),
+                   Coefficient=c('-0.04***', '38.26***', '15.02***'), 
                      Standard_Error=c(0.01, 3.66, 1.47), 
                      T_Value=c(-8.14, 10.44, 10.19))
-
-row.names(mhy.df)<-c('Elevation', 'Poverty', 'Constant')
 
 ##############################################################################################
 
