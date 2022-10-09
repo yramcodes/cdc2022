@@ -1,0 +1,127 @@
+rm(list=ls())
+setwd("C:/Users/marym/OneDrive/Desktop/cdc")
+cdc<-read.csv('cdc.csv')
+library(caret) # was going to do machine learning, but didn't (my models were bad)
+
+povertyy<-train(Poverty~NonWhite+Disability, data=cdc, method='lm') # making a regression model
+
+povertyy
+
+summary(povertyy) # regression table
+
+povertyy.df<-data.frame(Coefficient=c('0.34***', '1.39***', '-0.063***'), 
+                        Standard_Error=c(0.02, 0.08, 0.01), 
+                        T_Value=c(19.95, 18.18, -5.23)) # copying the results into a dataframe
+
+row.names(povertyy.df)<-c('Non-white', 'Disability', 'Constant') #naming the nice little row
+
+
+
+elevy<-train(Elevation~Poverty+MentalHealth, data=cdc, method='lm') #making another model for other variables
+
+elevy
+
+summary(elevy)
+
+elevy.df<-data.frame(Coefficient=c('-115.09***', '-2.352***', '202.34***'), 
+                     Standard_Error=c(28.85, 0.29, 8.13), 
+                     T_Value=c(-3.99, -8.14, 24.89))
+
+row.names(elevy.df)<-c('Poverty', 'Mental Health', 'Constant')
+
+
+
+mhy<-train(MentalHealth~Elevation+Poverty, data=cdc, method='lm') # another model but slightly different
+
+mhy
+
+summary(mhy)
+
+mhy.df<-data.frame(Coefficient=c('-0.04***', '38.26***', '15.02***'), 
+                     Standard_Error=c(0.01, 3.66, 1.47), 
+                     T_Value=c(-8.14, 10.44, 10.19))
+
+row.names(mhy.df)<-c('Elevation', 'Poverty', 'Constant')
+
+##############################################################################################
+
+library(shiny) # sure why not
+library(bslib)
+
+theme<-bs_theme(5, 'journal')
+
+ui<-fluidPage(
+  theme=theme,
+  titlePanel('BREAKING: Facing structural violence is not good for your mental health'),
+  sidebarLayout(
+    sidebarPanel(
+      p('Systemic oppression places people in poverty, leaves them most vulnerable to climate change, and puts them in the hospital. See how these circumstances interact.'),
+      
+      # this makes a little selection box where you can choose which regression table you want to see
+      selectInput(inputId='select', label='Select data',
+                  choices = list('Predictors of poverty',
+                                 'Predictors of vulnerability to climate change',
+                                 'Predictors of high rates of mental health issues'))
+    ),
+    mainPanel(
+      h3("The cycle"),
+      p("We live in a world where people are not cared for. The wealth gap grows larger every day. The rich and powerful dump oil and cancer-causing chemicals in our water and carbon dioxide in the air, causing extreme weather and leaving the already vulnerable even more so. It's not the rich that must face the consequences of their actions. It's the poor. It's people of color. It's the disabled. It's the mentally ill. We aim to show that the relationship between vulnerability to climate change, mental health, and poverty is not unidirectional. It's a cycle."),
+      p('We measure vulnerability to climate change with elevation, as lower areas are more susceptible to flooding. In our preliminary analyses, it had the strongest correlations with our other variables compared to sea level and precipitation. To measure mental health, we use rates of hospitalization due to schizophrenia and similar disorders. Schizophrenia is comorbid with many other mental health issues, so we believe it paints an interesting picture. Finally, we measure poverty with the proportion of people making 200% of the federal poverty line. Our data covers San Fansisco, but we believe the story it tells is universal. Below are various graphs and regression tables showing how strongly our variables, mainly elevation and mental health, feed into each other.'),
+      br(),
+      
+      # a graph!
+      img(src='elevation_poverty_mentalhealth.png',
+          width=950,
+          height=560),
+      p("It's undeniable that there is a relationship between poverty and vulnerability to climate change. It appears that mental health has an impact, as well. Let's explore this further."),
+      br(),
+      
+      # this is where the table you select goes
+    dataTableOutput('table'),
+    p('*** Indicates p ≈ 0'),
+    br(),
+    
+    
+    # slapping a bunch of graphs (courtesy of tableau) in. i wanted to make it more interactive but that did not work out <3
+    img(src='poverty_predictors.png',
+        width=950,
+        height=560),
+    p('Poverty rates and proportions of marginalized people are highly correlated, making poverty a pretty good proxy. For the next models we assume that poverty indicates marginalization.'),
+    br(),
+    img(src='elevation_predictors.png',
+        width=950,
+        height=560),
+    p("Here's a graph showing the relationship between vulnerability to climate change, mental health, and poverty. As we saw earlier, poverty and mental health are highly correlated. Therefore, areas with higher rates of mental health ones, or poorer areas, live at lower elevations. Because these areas are so suceptible to floods, they're cheaper. In a world where people are not provided with the help they need and must shell out tens of thousands of dollars for it, those who cannot pay are left to grapple with nature's fury."),
+    br(),
+    img(src='mentalhealth_predictors.png',
+        width=950,
+        height=560),
+    p("Here's another graph showing the relationship between vulnerability to climate change, mental health, and poverty. Either way you look at it, the correlation between mental health and vulnerability to climate change is undeniable. It may, at first, be tempting to claim that the previous graph illustrated the causal relationship just fine, but who's to say this one doesn't? Vulnerability and marginalization is a self-reinforcing cycle. Being stuck in a home that will not last is undoubtedly a horrible situation to be in, which only exacerbates the stress and the fear that was already there. Schizophrenia, anxiety, depression, and substance abuse are highly comorbid (Buckley et al.). People can end up deeper in poverty and, at worst, in the hospital, also putting them deeper in poverty. It's a neverending cycle."),
+    br(),
+    p("Buckley, P. F., Miller, B. J., Lehrer, D. S., & Castle, D. J. (2009). Psychiatric comorbidities and schizophrenia. Schizophrenia bulletin, 35(2), 383–402. https://doi.org/10.1093/schbul/sbn135"))
+)
+)
+
+
+server <- function(input, output) {
+  
+  dataInput<-reactive({
+    switch(input$select, 
+           'Predictors of poverty' = povertyy.df,
+           'Predictors of vulnerability to climate change' = elevy.df,
+           'Predictors of high rates of mental health issues' = mhy.df
+    )
+  })
+  
+ 
+  output$table<-renderDataTable({
+    dataInput()
+  })
+  
+
+  
+}
+
+
+shinyApp(ui,server)
+
