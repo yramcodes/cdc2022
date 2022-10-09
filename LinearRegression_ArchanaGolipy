@@ -1,18 +1,23 @@
 # Acknowledgements: https://www.sfu.ca/~mjbrydon/tutorials/BAinPy/09_regression.html
+
+
 # imports
 import numpy as np
 import pandas as pd 
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
-# OLS - "ordinary least squares", finds best fit line by minimizing the squared residuals
 
-dataset = pd.read_csv('San_Francisco_Flood_Health_Vulnerability.csv')
-POVERTY = dataset['Poverty']
-ELEVATION = dataset['Elevation']
-model1 = sm.OLS(POVERTY,ELEVATION)
-model1_result = model1.fit()
-print(model1_result.summary())
-sm.graphics.plot_fit(model1_result,'Elevation',vlines=False)
+
+dataset = pd.read_csv('San_Francisco_Flood_Health_Vulnerability.csv')  # opens and reads csv file
+
+
+POVERTY = dataset['Poverty']  # defining X matrices
+ELEVATION = dataset['Elevation']  # defining Y matrices
+model1 = sm.OLS(POVERTY,ELEVATION)  # OLS - "ordinary least squares", finds best fit line by minimizing the squared residuals (difference in actual and predicted data value)
+model1_result = model1.fit() # fit estimates parameters for model using the dataset
+print(model1_result.summary()) # reports descriptive statistics
+sm.graphics.plot_fit(model1_result,'Elevation',vlines=False) # fit plot; displays actual vs predicted values of the variable, with poverty as the dependent variable
+
 
 MENTAL_HEALTH = dataset['MentalHealth']
 ELEVATION = dataset['Elevation']
@@ -20,6 +25,7 @@ model2 = sm.OLS(MENTAL_HEALTH,ELEVATION)
 model2_result = model2.fit()
 print(model2_result.summary())
 sm.graphics.plot_fit(model2_result,'Elevation',vlines=False)
+
 
 POVERTY = dataset['Poverty']
 MENTAL_HEALTH = dataset['MentalHealth']
